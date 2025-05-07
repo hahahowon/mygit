@@ -1,0 +1,13 @@
+make와 cmake 알아두기
+
+static
+- 전역변수로 선언된 static은 외부파일에서 접근하지 못한다.
+- bss나 data영역에 저장됨
+
+
+#ifndef __SAMPLE_H__
+#define __SAMPLE_H__
+#endif  __SAMPLE_H__ //endif 뒤에는 주석을 달아줘야함
+- 중복include 방지하기 위해 헤더 파일 만들때 필수로 해야할 것
+
+Q4-4문제 알고리즘 이해하고 다양한 방법 scanf, fgets, fgetc등 다 사용해서 구현할 수 있게 만들기
