@@ -4,25 +4,33 @@
 #define SCR_WIDTH   300
 #define SCR_HEIGHT  400
 #include <QLabel>
-
+#include <QtMultimedia>
 #include<QDebug>
-
+//점수 넣기 추가
+// 필요하다고 생각하는것  s_label -> setText(QLabel::score(result)); 스코어 레이블을 setText로 초기화
+// 구현 -- 블럭 하나를 삭제할 때 마다 카운트를 통해 점수 상승
+//        while문으로 블럭 갯수가 0이 될 때 까지 반복시키는 함수 만들기
 /******생성자******/
 Breakout::Breakout(QWidget *parent) : QWidget(parent), xDir(1), yDir(-1)
 {
+
+
+    s_label = new QLabel("0", this);
+    s_label -> setAlignment(Qt::AlignRight | Qt::AlignVCenter);//라벨에 표시할 텍스트 정렬 설정
+    s_label -> setGeometry(5, 5, 20, 20);
     /*ball*/
-    ball =new QLabel(this);
+    ball = new Ball(this);// 수정중
     ball->setGeometry(SCR_WIDTH *0.8, SCR_HEIGHT *0.875, 10, 10);
-    ball->setStyleSheet("QLabel{background-color:red; border-radius: 5px;}");
+    ball->setStyleSheet("QLabel{background-color:transparent; border-radius: 5px;}");
 
     /*paddle*/
-    paddle = new QLabel(this);
+    paddle = new Paddle(this);
     paddle -> setGeometry(SCR_WIDTH *0.7, SCR_HEIGHT *0.9, WIDTH, HEIGHT);
     paddle->setStyleSheet("QLabel{background-color:blue;}");
     /*벽돌 생성*/
     for(int y=0, i=0; y<5; y++){
         for(int x=0; x<6; x++, i++){
-            bricks[i]= new QLabel(this);
+            bricks[i]= new Brick(this);
             bricks[i]->setStyleSheet("QLabel{background-color:cyan;" "border:1px solid black;}");
             bricks[i]->setGeometry(x*WIDTH, y*HEIGHT+30, WIDTH, HEIGHT );
         }
@@ -32,6 +40,27 @@ Breakout::Breakout(QWidget *parent) : QWidget(parent), xDir(1), yDir(-1)
     setMouseTracking(true);//이동감지
 
     timerld = startTimer(10);
+
+    /*사운드 출력을 위한 미디어 플레이어의 초기화 배경음악*/
+    QAudioOutput *bgAudioOutput = new QAudioOutput;
+    bgAudioOutput->setVolume(1);
+
+    bgPlayer = new QMediaPlayer();
+    bgPlayer -> setAudioOutput(bgAudioOutput);
+    bgPlayer -> setLoops(QMediaPlayer::Infinite);
+    bgPlayer -> setSource(
+        QUrl::fromLocalFile(QFileInfo("\\Users\\kosa\\Documents\\BreakoutApp\\background.wav").absoluteFilePath()));
+    bgPlayer -> play();
+
+
+    QAudioOutput *bgEffectOutput = new QAudioOutput;
+    bgEffectOutput->setVolume(200);
+
+    effectPlayer = new QMediaPlayer();
+    effectPlayer -> setAudioOutput(bgEffectOutput);
+    effectPlayer -> setLoops(QMediaPlayer::Once);
+    effectPlayer -> setSource(
+        QUrl::fromLocalFile(QFileInfo("C:\\Users\\kosa\\Downloads\\effect.mp3").absoluteFilePath()));
 
 }
 
@@ -45,6 +74,7 @@ Breakout::~Breakout()
         delete bricks[i];
     }
 }
+
 void Breakout::moveObject()
 {
     ball->move(ball->x()+xDir,ball->y()+yDir);
@@ -90,6 +120,7 @@ void Breakout::mouseMoveEvent(QMouseEvent *e)
 
 void Breakout::checkCollision()
 {
+    int result =0;
     //공 아래로 가면 종료
     if(ball->geometry().bottom()> height()){
         killTimer(timerld);
@@ -119,6 +150,8 @@ void Breakout::checkCollision()
         if(ballLPos>=second && ballLPos < third) xDir   = 0;  yDir  = -1;
         if(ballLPos>=third && ballLPos <fourth) xDir    = 1;    yDir *= -1;
         if(ballLPos>fourth) xDir= 1; yDir= -1;
+        effectPlayer -> stop();
+        effectPlayer -> play();
     }
 
     for(int i = 0; i < NO_OF_BRICKS; i++){
@@ -139,10 +172,22 @@ void Breakout::checkCollision()
                 if(bricks[i]->geometry().contains(pointTop)) yDir=  1;
                 else if(bricks[i]->geometry().contains(pointBottom))  yDir = -1;
                 bricks[i]->setHidden(true);
+                s_label -> setText(QString::number(result));
+
+                effectPlayer -> play();
             }
         }
     }
 }
+
+void Breakout::s_Num()
+{
+    //외부의 멤버변수를 사용할 수 있게 해야한다
+    //s_Num에서 결과 값 계산 후 보내기,
+    //checkCollision() 함수에서 써야하나..?
+
+}
+
 
 void Breakout::timerEvent(QTimerEvent *e)
 {
