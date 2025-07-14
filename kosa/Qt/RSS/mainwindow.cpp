@@ -18,6 +18,9 @@ MainWindow::MainWindow(QWidget *parent)
     toolbar->addAction(act);
 
     combo->addItem("");
+    ListView *lv = new ListView;
+    combo->setView(lv);
+    combo->setEditable(true);
 
     manager = new QNetworkAccessManager(this);
     connect(manager, SIGNAL(finished(QNetworkReply*)),SLOT(replyFinished(QNetworkReply*)));
@@ -33,4 +36,18 @@ void MainWindow::openRssFeed(){
 void MainWindow::replyFinished(QNetworkReply *netReply){
     QString str(netReply->readAll());
     qDebug("%s", qPrintable(str));
+}
+
+void ListView::keyPressEvent(QKeyEvent *event)
+{
+    if(event->key()==Qt::Key_Delete){
+        event->accept();
+        QModelIndexList I = selectedIndexes();
+        if(I.length()>0){
+            model()->removeRow(I.at(0).row(), I.at(0).parent());
+        }
+    }else{
+        QListView::keyPressEvent(event);
+
+    }
 }
